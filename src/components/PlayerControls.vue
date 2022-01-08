@@ -29,6 +29,7 @@ export default defineComponent({
       return minMax(currentTime.value / duration.value)
     })
     const buffered = ref<number[][]>([])
+    const blocked = ref<number[][]>([])
 
     let interval: NodeJS.Timeout
     const updateProgress = (once = false, current?: number) => {
@@ -37,6 +38,7 @@ export default defineComponent({
       currentTime.value = current ?? resync.currentTime()
       duration.value = resync.duration()
       buffered.value = bufferedArray(resync.buffered(), resync.duration())
+      blocked.value = resync.blocked() ?? []
 
       if (!once && (isNaN(progress.value) || !resync.paused.value)) {
         requestAnimationFrame(() => updateProgress())
@@ -111,6 +113,7 @@ export default defineComponent({
       timestamp,
       fullscreenStateIcon,
       buffered,
+      blocked,
     }
   },
 })
@@ -178,6 +181,7 @@ export default defineComponent({
       class="bottom-full w-full px-2 transform translate-y-1/2 absolute"
       :progress="progress"
       :buffered="buffered"
+      :blocked="blocked"
       @value="onProgressSliderValue"
       :updateSlack="3"
     />

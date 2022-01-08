@@ -6,6 +6,7 @@ import { Ref, ref, watch, computed } from "vue"
 import { bufferedStub, capitalize, debug, ls } from "./util"
 import { setMetadata } from "./mediaSession"
 import { MediaSourceAny } from "$/mediaSource"
+import { Segment } from "sponsorblock-api"
 import { Permission } from "$/permissionTypes"
 
 const log = debug("resync.ts")
@@ -20,6 +21,7 @@ export default class Resync {
   currentTime = (): number => NaN
   duration = (): number => NaN
   buffered = (): HTMLMediaElement["buffered"] => bufferedStub
+  blocked = (): number[][] | undefined => undefined
 
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
