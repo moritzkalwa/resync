@@ -245,7 +245,7 @@ class Room {
       this.log("same video")
 
       this.lastSeekedTo = 0
-      this.seekTo({ client, seconds: 0 })
+      this.seekTo({ seconds: 0, secret: this.hostSecret })
       this.resume(client, secret)
       return
     }
@@ -262,7 +262,8 @@ class Room {
 
   skipSegment(segment: Segment) {
     if (!this.paused && this.blockedCategories.includes(segment.category)) {
-      this.seekTo({ seconds: segment.endTime })
+      this.seekTo({ seconds: segment.endTime, secret: this.hostSecret })
+      this.notify("sponsor", this.members[0].client, { seconds: segment.endTime }) //insanely hacky
     }
   }
 
@@ -271,7 +272,7 @@ class Room {
     if(this.source?.segments) {
       for (const segment of this.source.segments) {
         if (this.blockedCategories.includes(segment.category) 
-          && segment.endTime > oldTime && oldTime > segment.startTime) oldTime = segment.endTime
+          && segment.endTime > oldTime && oldTime >= segment.startTime) oldTime = segment.endTime
       }
       for (const segment of this.source.segments) {
         if (segment.startTime > oldTime) {
@@ -357,7 +358,7 @@ class Room {
 
   resume(client?: Socket, secret?: string) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
-    this.updateSegmentTimeouts(this.lastSeekedTo)
+    this.lastSeekedTo = this.updateSegmentTimeouts(this.lastSeekedTo)
 
     this.paused = false
     this.broadcast.emit("resume")
@@ -368,7 +369,6 @@ class Room {
 
   updateLooping(newState: boolean, client?: Socket, secret?: string) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
-    seconds = this.updateSegmentTimeouts(seconds)
 
     this.looping = newState
 
@@ -380,12 +380,17 @@ class Room {
   seekTo({ client, seconds, secret }: { client?: Socket; seconds: number; secret?: string }) {
     if (!this.hasPermission(Permission.PlaybackControl, client?.id, secret)) return
 
+    const originalSeconds = seconds
+
+    seconds = this.updateSegmentTimeouts(seconds)
+
     this.lastSeekedTo = seconds
     this.broadcast.emit("seekTo", seconds)
 
     this.updateState()
-    if (client) this.notify("seekTo", client, { seconds })
-      else this.log(`Seeking to ${seconds}`)
+    if (client) this.notify("seekTo", client, { originalSeconds })
+    if (originalSeconds != seconds) this.notify("sponsor", this.members[0].client, { seconds })
+
   }
 
   async requestTime(client: Socket) {

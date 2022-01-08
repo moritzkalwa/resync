@@ -27,6 +27,7 @@ export interface RoomState<S = MediaSourceAny> {
 }
 
 export type NotifyEvents =
+  | "sponsor"
   | "looping"
   | "join"
   | "leave"
