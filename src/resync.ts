@@ -22,6 +22,7 @@ export default class Resync {
   buffered = (): HTMLMediaElement["buffered"] => bufferedStub
   hostSecret = ""
 
+  fullscreenEnabled: Ref<Boolean> | undefined
   paused = ref(true)
   volume = ref(ls("resync-volume") ?? 0.5)
   muted = ref(ls("resync-muted") ?? false)

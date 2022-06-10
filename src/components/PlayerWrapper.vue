@@ -83,6 +83,7 @@ export default defineComponent({
 
     const playerWrapper = ref<HTMLElement | null>(null)
     const fullscreenEnabled = ref(false)
+    resync.fullscreenEnabled = fullscreenEnabled
     const toggleFullscreen = async () => {
       if (fullscreenEnabled.value) {
         try {
